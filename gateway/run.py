@@ -23170,7 +23170,14 @@ class GatewayRunner(GatewayAuthorizationMixin, GatewayKanbanWatchersMixin, Gatew
           UNLESS streaming already consumed the response (already_sent=True),
           in which case the base adapter won't have text for auto-TTS so the
           runner must handle it.
+        - source platform is A2A: remote agent peers expect a text task
+          result, not a TTS voice note; sending audio here fails (no native
+          audio channel) and blocks the reply.
         """
+        # A2A inbound/outbound: peers exchange text tasks, never voice notes.
+        if getattr(event, "source", None) is not None and str(getattr(event.source, "platform", "")) == "a2a":
+            return False
+
         if not response or response.startswith("Error:"):
             return False
 

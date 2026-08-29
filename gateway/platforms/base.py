@@ -183,6 +183,9 @@ def should_send_media_as_audio(platform, ext: str, is_voice: bool = False) -> bo
     normalized_ext = (ext or "").lower()
     if normalized_ext not in _AUDIO_EXTS:
         return False
+    if _platform_name(platform) == "a2a":
+        # A2A peers exchange text tasks; never wrap audio as a voice bubble.
+        return False
     if _platform_name(platform) == "telegram":
         if normalized_ext in _TELEGRAM_VOICE_EXTS:
             return is_voice

@@ -52,17 +52,37 @@ def get_peer_tokens() -> dict[str, str]:
     Per-peer tokens give each remote agent its own credential, so the identity
     used for rate limiting, trust, and audit is authenticated — not whatever
     the request body claims.
+
+    Fallback: if A2A_PEER_TOKENS is empty, read ``a2a.peer_tokens`` from
+    config.yaml (a ``{name: token}`` mapping). This lets operators configure
+    peer credentials in config.yaml without needing to restart the gateway
+    with a new environment variable (the env var still wins when set).
     """
     raw = os.getenv("A2A_PEER_TOKENS", "").strip()
     out: dict[str, str] = {}
-    for pair in raw.split(","):
-        pair = pair.strip()
-        if not pair or ":" not in pair:
-            continue
-        name, token = pair.split(":", 1)
-        name, token = name.strip(), token.strip()
-        if name and token:
-            out[token] = name
+    if raw:
+        for pair in raw.split(","):
+            pair = pair.strip()
+            if not pair or ":" not in pair:
+                continue
+            name, token = pair.split(":", 1)
+            name, token = name.strip(), token.strip()
+            if name and token:
+                out[token] = name
+        if out:
+            return out
+    # Fallback: config.yaml a2a.peer_tokens -> {name: token}
+    try:
+        from hermes_cli.config import load_config
+        cfg = load_config() or {}
+        pt = (cfg.get("a2a") or {}).get("peer_tokens") or {}
+        if isinstance(pt, dict):
+            for name, token in pt.items():
+                name, token = str(name).strip(), str(token).strip()
+                if name and token:
+                    out[token] = name
+    except Exception as e:  # pragma: no cover - config read is best-effort
+        logger.debug("get_peer_tokens config fallback failed: %s", e)
     return out
 
 
