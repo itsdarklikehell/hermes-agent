@@ -44,12 +44,9 @@ jobs:
             -vf "scale=-1:720" -c:a aac -b:a 192k \
             ./gource.mp4
 
-      - name: Upload video as release artifact
-        uses: softprops/action-gh-release@v2
+      - name: Upload video as artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: ./gource.mp4
-          tag_name: gource-1080p
-          name: Gource visualization 1080p
-          overwrite_files: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: gource-1080p
+          path: ./gource.mp4
+          retention-days: 30
