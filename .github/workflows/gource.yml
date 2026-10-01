@@ -1,0 +1,57 @@
+name: Gource visualization
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 0'  # weekly
+  push:
+    branches: [ main ]
+
+jobs:
+  gource:
+    name: Generate Gource video
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate Gource video
+        uses: nbprojekt/gource-action@v1.3.0
+        with:
+          gource_resolution: 1080p
+          gource_fps: 60
+          gource_filename_time: 3
+          gource_hide_items: "mouse,date,filenames"
+          gource_highlight_users: true
+          gource_output_framerate: 30
+          gource_stop_at_end: true
+          gource_auto_skip_seconds: 0.1
+          gource_seconds_per_day: 0.1
+          gource_multi_sampling: true
+          gource_max_files: 5000
+          gource_title: 'Hermes Agent development timeline'
+
+      - name: Install ffmpeg (runner)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+
+      - name: Re-encode to MP4
+        run: |
+          ffmpeg -y -i ./gource/gource.mp4 \
+            -c:v libx264 -crf 20 -preset medium \
+            -vf "scale=-1:720" -c:a aac -b:a 192k \
+            ./gource.mp4
+
+      - name: Upload video as release artifact
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./gource.mp4
+          tag_name: gource-1080p
+          name: Gource visualization 1080p
+          overwrite: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
