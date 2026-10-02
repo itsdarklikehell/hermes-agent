@@ -63,9 +63,9 @@ jobs:
       has-fixes: ${{ steps.produce-patch.outputs.has-fixes }}
     # No permissions override → inherits workflow-level contents: read.
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@v5 # v6.0.2
 
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      - uses: actions/setup-node@v5 # v4
         with:
           node-version: 26
           cache: npm
@@ -124,7 +124,7 @@ jobs:
           fi
 
       - name: Upload patch artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@v5 # v4
         with:
           name: js-fix-patch
           path: js-fix.patch
@@ -144,7 +144,7 @@ jobs:
       contents: write # needed to push to bot/js-autofix
       pull-requests: write # needed for PR creation + auto-merge
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@v5 # v6.0.2
 
       - name: Get GitHub App token
         id: app-token
@@ -154,7 +154,7 @@ jobs:
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
 
       - name: Download patch
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        uses: actions/download-artifact@v5 # v4
         with:
           name: js-fix-patch
           # ${{ runner.temp }} expands in with: params (shell-style $VAR does not).
